@@ -13,7 +13,7 @@ func main() {
 	aliases := wtfa.ParseAliases(strings.Join(os.Args[1:], " "))
 	match := wtfa.FindMatch(history, aliases)
 	if match != nil {
-		fmt.Printf("You may try this shortcut: %v\n", match.Definition)
+		fmt.Printf("You might try this shortcut: %v\n", match.Definition)
 	} else {
 		fmt.Println("No alias found")
 	}
