@@ -6,6 +6,11 @@ import (
 	"testing"
 )
 
+func TestParseArgs(t *testing.T) {
+	s := `commit -m "My message"`
+	assert.Equal(t, []string{"commit", "-m", `"My message"`}, wtfa.ParseArgs(s))
+}
+
 func TestParse(t *testing.T) {
 	s := ": 1637273587:0;git add ."
 	expected := wtfa.Cmd{Exec: "git", Args: []string{".", "add"}}

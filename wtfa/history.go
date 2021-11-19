@@ -60,7 +60,40 @@ func ParseZshHistory(s string) Cmd {
 	ex := matches[1]
 	var args []string
 	if len(matches) == 3 {
-		args = strings.Split(matches[2], " ")
+		// TODO: need smarter tokeninzation as we break everything of the form "foo bar"
+		args = ParseArgs(matches[2])
 	}
 	return NewCmd(ex, args)
+}
+
+func ParseArgs(s string) []string {
+	inQuote := false
+	var tokens []string
+	current := ""
+	for _, c := range s {
+		if c == ' ' && !inQuote {
+			tokens = append(tokens, current)
+			current = ""
+			continue
+		}
+		if c == ' ' && inQuote {
+			current = current + string(c)
+			continue
+		}
+		if c == '"' && inQuote {
+			current = current + string(c)
+			inQuote = false
+			continue
+		}
+		if c == '"' && !inQuote {
+			current = current + string(c)
+			inQuote = true
+			continue
+		}
+		current = current + string(c)
+	}
+	if len(current) > 0 {
+		tokens = append(tokens, current)
+	}
+	return tokens
 }
