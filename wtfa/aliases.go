@@ -7,6 +7,7 @@ import (
 )
 
 type Cmd struct {
+	Full string
 	Exec string
 	Args []string
 }
@@ -35,22 +36,24 @@ func NewAlias(s string, args []string, def string) *Alias {
 var aliasRegex *regexp.Regexp
 
 func init() {
-	aliasRegex = regexp.MustCompile(`(\w*)='(\w*) (.*)`)
+	aliasRegex = regexp.MustCompile(`(\w*)='(\w*) (.*)'`)
 }
 
-type Aliases map[string][]Alias
+type Aliases map[string][]*Alias
 
-func ParseAliases(out string) Aliases {
+func ParseAliases(out string) (Aliases, int) {
 	aliases := make(Aliases)
+	count := 0
 	lines := SplitLines(out)
 	for _, line := range lines {
 		exec, alias := ParseAlias(line)
 		if alias == nil {
 			continue
 		}
-		aliases[exec] = append(aliases[exec], *alias)
+		aliases[exec] = append(aliases[exec], alias)
+		count += 1
 	}
-	return aliases
+	return aliases, count
 }
 
 func SplitLines(s string) []string {

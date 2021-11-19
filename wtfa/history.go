@@ -26,8 +26,8 @@ func getHistoryFile() (SHELL, string) {
 	return ZSH, fmt.Sprintf("%v/%v", dirname, ".zsh_history")
 }
 
-func NewCmd(exec string, args []string) Cmd {
-	cmd := Cmd{Exec: exec}
+func NewCmd(full string, exec string, args []string) Cmd {
+	cmd := Cmd{Full: full, Exec: exec}
 	for _, arg := range args {
 		if arg != "" {
 			cmd.Args = append(cmd.Args, arg)
@@ -60,10 +60,10 @@ func ParseZshHistory(s string) Cmd {
 	ex := matches[1]
 	var args []string
 	if len(matches) == 3 {
-		// TODO: need smarter tokeninzation as we break everything of the form "foo bar"
 		args = ParseArgs(matches[2])
 	}
-	return NewCmd(ex, args)
+	full := ex + " " + strings.Join(args, " ")
+	return NewCmd(full, ex, args)
 }
 
 func ParseArgs(s string) []string {

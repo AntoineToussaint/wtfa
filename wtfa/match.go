@@ -8,13 +8,13 @@ func FindMatch(cmd Cmd, all Aliases) *Alias {
 	if aliases, ok := all[cmd.Exec]; ok {
 		for _, alias := range aliases {
 			if reflect.DeepEqual(cmd.Args, alias.Args) {
-				return &alias
+				return alias
 			}
 		}
 		// Match but one
 		for _, alias := range aliases {
 			if MatchButOne(cmd.Args, alias.Args) {
-				return &alias
+				return alias
 			}
 		}
 
