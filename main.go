@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	history := wtfa.NewCmd("git", []string{"add", "."})
-	fmt.Println("history", history)
+	history := wtfa.GetLastCommand()
 	// Pass aliases as argument
 	aliases := wtfa.ParseAliases(strings.Join(os.Args[1:], " "))
 	match := wtfa.FindMatch(history, aliases)
