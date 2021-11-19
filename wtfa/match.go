@@ -39,7 +39,7 @@ func MatchButOne(cmd, alias []string) bool {
 	for _, r := range alias {
 		if _, ok := catch[r]; !ok {
 			mismatch += 1
-			if mismatch > 1 {
+			if mismatch > 1 || len(alias) == 1 {
 				return false
 			}
 		}
