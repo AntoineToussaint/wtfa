@@ -17,7 +17,7 @@ type Alias struct {
 	Args       []string
 }
 
-func NewAlias(s string, args []string, def string) Alias {
+func NewAlias(s string, args []string, def string) *Alias {
 	alias := Alias{
 		Shortcut:   s,
 		Definition: def,
@@ -29,31 +29,66 @@ func NewAlias(s string, args []string, def string) Alias {
 	}
 
 	sort.Strings(alias.Args)
-	return alias
+	return &alias
 }
 
 var aliasRegex *regexp.Regexp
 
 func init() {
-	aliasRegex = regexp.MustCompile(`(.*)=(\w*)\s*(\w*)`)
+	aliasRegex = regexp.MustCompile(`(\w*)='(\w*) (.*)`)
 }
 
 type Aliases map[string][]Alias
 
 func ParseAliases(out string) Aliases {
 	aliases := make(Aliases)
-	lines := strings.Split(out, "\\n")[1:]
-	lines = lines[0 : len(lines)-1]
+	lines := SplitLines(out)
 	for _, line := range lines {
-		line = strings.Replace(line, "\\'", "", -1)
 		exec, alias := ParseAlias(line)
-		aliases[exec] = append(aliases[exec], alias)
+		if alias == nil {
+			continue
+		}
+		aliases[exec] = append(aliases[exec], *alias)
 	}
 	return aliases
 }
 
-func ParseAlias(s string) (string, Alias) {
+func SplitLines(s string) []string {
+	var results []string
+	current := ""
+	inCommand := false
+	peek := 0
+	for _, c := range s {
+		peek += 1
+		if c == '\'' && inCommand && (peek < len(s) && s[peek] == ' ') {
+			current += string(c)
+			inCommand = false
+			continue
+		}
+		if c == '\'' && !inCommand {
+			current += string(c)
+			inCommand = true
+			continue
+		}
+		if c == ' ' && !inCommand {
+			results = append(results, current)
+			current = ""
+			continue
+
+		}
+		current += string(c)
+	}
+	if current != "" {
+		results = append(results, current)
+	}
+	return results
+}
+
+func ParseAlias(s string) (string, *Alias) {
 	matches := aliasRegex.FindStringSubmatch(s)
+	if len(matches) < 2 {
+		return "", nil
+	}
 	exec := matches[2]
 	shortcut := matches[1]
 	var args []string
