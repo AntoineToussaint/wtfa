@@ -10,16 +10,18 @@ type Cmd struct {
 	Exec       string
 	Args       []string
 	SortedArgs []string
+	MappedArgs map[string]bool
 }
 
 func ParseCommand(full string) *Cmd {
 	tokens := strings.Split(full, " ")
-	cmd := Cmd{Full: full, Exec: tokens[0]}
+	cmd := Cmd{Full: full, Exec: tokens[0], MappedArgs: make(map[string]bool)}
 	args := ParseArgs(strings.Join(tokens[1:], " "))
 	for _, arg := range args {
 		if arg != "" {
 			cmd.Args = append(cmd.Args, arg)
 			cmd.SortedArgs = append(cmd.SortedArgs, arg)
+			cmd.MappedArgs[arg] = true
 		}
 	}
 	sort.Strings(cmd.SortedArgs)

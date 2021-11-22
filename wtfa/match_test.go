@@ -8,10 +8,24 @@ import (
 
 func TestFindSuccessExactMatch(t *testing.T) {
 	cmd := wtfa.ParseCommand("git status")
-	assert.Equal(t, "git", cmd.Exec)
-	aliases := make(wtfa.Aliases)
-	alias := wtfa.ParseAlias("gst=git status")
-	assert.NotNil(t, alias)
-	aliases["git"] = append(aliases["git"], alias)
-	assert.NotNil(t, wtfa.FindMatch(cmd, aliases))
+	alias := wtfa.ParseAlias("gst='git status'")
+	assert.True(t, wtfa.Equal(cmd, alias))
+}
+
+func TestFindSuccessExactMatchWithoutQuote(t *testing.T) {
+	cmd := wtfa.ParseCommand("../..")
+	alias := wtfa.ParseAlias("...=../..")
+	assert.True(t, wtfa.Equal(cmd, alias))
+}
+
+func TestFindSuccessOneSubstitution(t *testing.T) {
+	cmd := wtfa.ParseCommand("git checkout master")
+	alias := wtfa.ParseAlias("gcm='git checkout $(git_main_branch)'")
+	assert.True(t, wtfa.FuzzyMatch(cmd, alias))
+}
+
+func TestFindSuccessAliasWithOneDeletion(t *testing.T) {
+	cmd := wtfa.ParseCommand("git checkout master")
+	alias := wtfa.ParseAlias("gcm='git checkout'")
+	assert.True(t, wtfa.FuzzyMatch(cmd, alias))
 }

@@ -5,13 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"github.com/AntoineToussaint/wtfa/wtfa"
+	"github.com/fatih/color"
 	"os"
 )
 
 var n int
 
 func init() {
-	flag.IntVar(&n, "n", 3, "look for previous history, default 1")
+	flag.IntVar(&n, "n", 10, "look for previous history, default 1")
 }
 
 func getAliases() []string {
@@ -35,12 +36,19 @@ func main() {
 	lasts := wtfa.GetLastCommands(n)
 	// Pass aliases as argument
 	aliases, count := wtfa.ParseAliases(getAliases())
-	fmt.Printf("Loaded %v aliases\n", count)
+	fmt.Printf("Loaded %v aliases.\n", count)
 	matches := wtfa.FindMatches(lasts, aliases)
+	blue := color.New(color.FgCyan, color.Bold)
+	red := color.New(color.FgRed, color.Bold)
 	if len(matches) > 0 {
-		fmt.Println("We found some useful shortcuts")
+		fmt.Println("✌ We found some useful shortcuts!")
 		for _, match := range matches {
-			fmt.Println(match.Definition)
+			fmt.Printf("You typed: ")
+			blue.Printf("%v\n", match.Cmd.Full)
+			fmt.Printf("You should look at these aliases:\n")
+			for _, alias := range match.Aliases {
+				red.Printf("○ %v\n", alias.Definition)
+			}
 		}
 	} else {
 		fmt.Println("Looked at history")
