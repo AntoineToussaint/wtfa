@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"sort"
 	"strings"
 	"syscall"
 )
@@ -26,74 +25,49 @@ func getHistoryFile() (SHELL, string) {
 	return ZSH, fmt.Sprintf("%v/%v", dirname, ".zsh_history")
 }
 
-func NewCmd(full string, exec string, args []string) Cmd {
-	cmd := Cmd{Full: full, Exec: exec}
-	for _, arg := range args {
-		if arg != "" {
-			cmd.Args = append(cmd.Args, arg)
-		}
+func reverse(input []string) []string {
+	if len(input) == 0 {
+		return input
 	}
-	sort.Strings(cmd.Args)
-	return cmd
+	return append(reverse(input[1:]), input[0])
 }
 
-func GetLastCommand() Cmd {
+func GetLastCommands(n int) []*Cmd {
 	shell, file := getHistoryFile()
-	cmd := exec.Command("tail", "-2", file)
+	cmd := exec.Command("tail", fmt.Sprintf("-%d", n+1), file)
 	out, err := cmd.Output()
 	if err != nil {
 		fmt.Printf("can't run history command: %v\n", err)
 		syscall.Exit(1)
 	}
-	last := strings.Split(string(out), "\n")[0]
-	switch shell {
-	case ZSH:
-		return ParseZshHistory(last)
-	default:
-		panic("unknown shell")
+	lasts := strings.Split(string(out), "\n")
+	uniques := make(map[string]bool)
+	// Reverse
+	var cmds []*Cmd
+	for _, last := range reverse(lasts) {
+		switch shell {
+		case ZSH:
+			cmd := ParseZshHistory(last)
+			if cmd == nil {
+				continue
+			}
+			if _, ok := uniques[cmd.Full]; ok {
+				continue
+			}
+			cmds = append(cmds, cmd)
+			uniques[cmd.Full] = true
+		default:
+			fmt.Println("shell is not supported")
+		}
 	}
+	return cmds
 }
 
-func ParseZshHistory(s string) Cmd {
-	r := regexp.MustCompile(`:\s*\d*:\d*;(\w*)\s*(.*)`)
+func ParseZshHistory(s string) *Cmd {
+	r := regexp.MustCompile(`:\s*\d*:\d*;(.*)`)
 	matches := r.FindStringSubmatch(s)
-	ex := matches[1]
-	var args []string
-	if len(matches) == 3 {
-		args = ParseArgs(matches[2])
+	if len(matches) < 2 {
+		return nil
 	}
-	full := ex + " " + strings.Join(args, " ")
-	return NewCmd(full, ex, args)
-}
-
-func ParseArgs(s string) []string {
-	inQuote := false
-	var tokens []string
-	current := ""
-	for _, c := range s {
-		if c == ' ' && !inQuote {
-			tokens = append(tokens, current)
-			current = ""
-			continue
-		}
-		if c == ' ' && inQuote {
-			current = current + string(c)
-			continue
-		}
-		if c == '"' && inQuote {
-			current = current + string(c)
-			inQuote = false
-			continue
-		}
-		if c == '"' && !inQuote {
-			current = current + string(c)
-			inQuote = true
-			continue
-		}
-		current = current + string(c)
-	}
-	if len(current) > 0 {
-		tokens = append(tokens, current)
-	}
-	return tokens
+	return ParseCommand(matches[1])
 }

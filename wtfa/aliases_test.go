@@ -6,14 +6,14 @@ import (
 	"testing"
 )
 
-func TestSplitLines(t *testing.T) {
-	s := "7='cd -7' 8='cd -8' 9='cd -9' RED='RAILS_ENV=development' REP='RAILS_ENV=production'"
-	lines := wtfa.SplitLines(s)
-	assert.Equal(t, 5, len(lines))
-	assert.Equal(t, "8='cd -8'", lines[1])
+func TestParseAlias(t *testing.T) {
+	alias := wtfa.ParseAlias("gst='git status'")
+	assert.NotNil(t, alias)
+	assert.Equal(t, "git", alias.Exec)
+	assert.Equal(t, "gst", alias.Shortcut)
 
-	s = "-='cd -' ...=../.. 1='cd -1'"
-	lines = wtfa.SplitLines(s)
-	assert.Equal(t, 3, len(lines))
-	assert.Equal(t, "1='cd -1'", lines[2])
+	alias = wtfa.ParseAlias("rb=ruby")
+	assert.NotNil(t, alias)
+	assert.Equal(t, "ruby", alias.Exec)
+	assert.Equal(t, "rb", alias.Shortcut)
 }
