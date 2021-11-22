@@ -12,7 +12,7 @@ import (
 var n int
 
 func init() {
-	flag.IntVar(&n, "n", 10, "look for previous history, default 1")
+	flag.IntVar(&n, "n", 100, "look for previous history, default 1")
 }
 
 func getAliases() []string {
@@ -32,11 +32,11 @@ func getAliases() []string {
 }
 
 func main() {
-
+	fmt.Println(os.Getenv("SHELL"))
 	lasts := wtfa.GetLastCommands(n)
 	// Pass aliases as argument
 	aliases, count := wtfa.ParseAliases(getAliases())
-	fmt.Printf("Loaded %v aliases.\n", count)
+	fmt.Printf("Loaded %v aliases!\n", count)
 	matches := wtfa.FindMatches(lasts, aliases)
 	blue := color.New(color.FgCyan, color.Bold)
 	red := color.New(color.FgRed, color.Bold)

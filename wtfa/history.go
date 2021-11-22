@@ -13,16 +13,35 @@ type SHELL int
 
 const (
 	ZSH SHELL = iota
+	BASH
 )
 
+
+
 func getHistoryFile() (SHELL, string) {
+	shellPath := os.Getenv("SHELL")
+	var shell SHELL
+	if strings.Contains(shellPath, "zsh") {
+		shell = ZSH
+	}
 	dirname, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Printf("can't get user home directory")
 		syscall.Exit(1)
 	}
-	// TODO check if file exists, do bash...
-	return ZSH, fmt.Sprintf("%v/%v", dirname, ".zsh_history")
+	var locations []string
+	switch shell {
+	case ZSH:
+		locations = []string{fmt.Sprintf("%v/%v", dirname, ".zsh_history"), fmt.Sprintf("%v/%v", dirname, "config/zsh/.zsh_history")}
+	}
+	var location string
+	for _, l := range locations {
+		if _, err := os.Stat(l); err == nil {
+			location = l
+			break
+		}
+	}
+	return shell, location
 }
 
 func reverse(input []string) []string {
