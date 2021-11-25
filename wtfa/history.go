@@ -16,6 +16,7 @@ const (
 	BASH
 )
 
+type Stats = map[string]int
 
 
 func getHistoryFile() (SHELL, string) {
@@ -51,7 +52,7 @@ func reverse(input []string) []string {
 	return append(reverse(input[1:]), input[0])
 }
 
-func GetLastCommands(n int) []*Cmd {
+func GetLastCommands(n int) ([]*Cmd, Stats) {
 	shell, file := getHistoryFile()
 	cmd := exec.Command("tail", fmt.Sprintf("-%d", n+1), file)
 	out, err := cmd.Output()
@@ -60,6 +61,7 @@ func GetLastCommands(n int) []*Cmd {
 		syscall.Exit(1)
 	}
 	lasts := strings.Split(string(out), "\n")
+	stats := make(Stats)
 	uniques := make(map[string]bool)
 	// Reverse
 	var cmds []*Cmd
@@ -70,6 +72,12 @@ func GetLastCommands(n int) []*Cmd {
 			if cmd == nil {
 				continue
 			}
+			// Aggregate the stats
+			if _, ok := stats[cmd.Full]; !ok {
+				stats[cmd.Full] = 1
+			} else {
+				stats[cmd.Full] += 1
+			}
 			if _, ok := uniques[cmd.Full]; ok {
 				continue
 			}
@@ -79,7 +87,7 @@ func GetLastCommands(n int) []*Cmd {
 			fmt.Println("shell is not supported")
 		}
 	}
-	return cmds
+	return cmds, stats
 }
 
 func ParseZshHistory(s string) *Cmd {

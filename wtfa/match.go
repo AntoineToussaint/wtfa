@@ -5,11 +5,13 @@ type Match struct {
 	Aliases []*Alias
 }
 
-func FindMatches(cmds []*Cmd, all Aliases) []*Match {
+func FindMatches(cmds []*Cmd, all Aliases) ([]*Match, []*Cmd) {
 	var found []*Match
+	var unknown []*Cmd
 	for _, cmd := range cmds {
 		aliases := FindMatch(cmd, all)
 		if aliases == nil {
+			unknown = append(unknown, cmd)
 			continue
 		}
 		found = append(found, &Match{
@@ -17,7 +19,7 @@ func FindMatches(cmds []*Cmd, all Aliases) []*Match {
 			Aliases: aliases,
 		})
 	}
-	return found
+	return found, unknown
 }
 
 func FindMatch(cmd *Cmd, aliases Aliases) []*Alias {

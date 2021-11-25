@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/AntoineToussaint/wtfa/wtfa"
+	"github.com/AntoineToussaint/wfta/wtfa"
 	"github.com/fatih/color"
 	"os"
 )
@@ -12,7 +12,7 @@ import (
 var n int
 
 func init() {
-	flag.IntVar(&n, "n", 100, "look for previous history, default 1")
+	flag.IntVar(&n, "n", 100, "look for previous history, default 100")
 }
 
 func getAliases() []string {
@@ -32,29 +32,29 @@ func getAliases() []string {
 }
 
 func main() {
-	fmt.Println(os.Getenv("SHELL"))
-	lasts := wtfa.GetLastCommands(n)
+	lasts, stats := wtfa.GetLastCommands(n)
 	// Pass aliases as argument
 	aliases, count := wtfa.ParseAliases(getAliases())
-	fmt.Printf("Loaded %v aliases!\n", count)
-	matches := wtfa.FindMatches(lasts, aliases)
+	fmt.Printf("Loaded %v aliases! Analyzing %v past commands.\n", count, n)
+	matches, unknowns := wtfa.FindMatches(lasts, aliases)
+	bold := color.New(color.FgWhite, color.Bold)
 	blue := color.New(color.FgCyan, color.Bold)
 	red := color.New(color.FgRed, color.Bold)
 	if len(matches) > 0 {
-		fmt.Println("✌ We found some useful shortcuts!")
+		_, _ = bold.Printf("♡ We found some useful existing shortcuts!\n")
 		for _, match := range matches {
-			fmt.Printf("You typed: ")
-			blue.Printf("%v\n", match.Cmd.Full)
-			fmt.Printf("You should look at these aliases:\n")
+			fmt.Printf("Because you typed: ")
+			_, _ = blue.Printf("%v\n", match.Cmd.Full)
 			for _, alias := range match.Aliases {
-				red.Printf("○ %v\n", alias.Definition)
+				_, _ = red.Printf("○ %v\n", alias.Definition)
 			}
 		}
-	} else {
-		fmt.Println("Looked at history")
-		for _, last := range lasts {
-			fmt.Println(last.Full)
+	}
+	possibles := wtfa.Analyze(unknowns, stats, aliases)
+	if len(possibles) > 0 {
+		_, _ = bold.Printf("♥ You may want to create these shortcuts\n")
+		for _, prop := range possibles {
+			_, _ = blue.Printf("alias %v='%v'\n", prop.Shortcut, prop.Full)
 		}
-		fmt.Println("No alias found")
 	}
 }
