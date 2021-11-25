@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/AntoineToussaint/wfta/wtfa"
+	"github.com/AntoineToussaint/wtfa/wtfa"
 	"github.com/fatih/color"
 	"os"
 )
