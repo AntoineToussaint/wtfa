@@ -17,15 +17,24 @@ func init() {
 
 func getAliases() []string {
 	var aliases []string
-	fileInfo, _ := os.Stdin.Stat()
-	if fileInfo.Mode()&os.ModeCharDevice == 0 {
+	fileInfo, err := os.Stdin.Stat()
+	if err != nil {
+		fmt.Println("wtfa can't read Stdin")
+		os.Exit(1)
+	}
+	if fileInfo.Mode()&os.ModeCharDevice == 0 || fileInfo.Size() <= 0 {
 		scanner := bufio.NewScanner(bufio.NewReader(os.Stdin))
 		for scanner.Scan() {
 			aliases = append(aliases, scanner.Text())
 		}
+		if err := scanner.Err(); err != nil {
+			fmt.Println("wtfa can't read Stdin: %v", err)
+			os.Exit(1)
+		}
 	}
 	if len(aliases) == 0 {
 		fmt.Println("wtfa requires to pipe in the alias: alias | wtfa")
+		fmt.Println("you can check that you have aliases available by typing alias")
 		os.Exit(1)
 	}
 	return aliases
