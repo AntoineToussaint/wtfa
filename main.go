@@ -22,7 +22,7 @@ func getAliases() []string {
 		fmt.Println("wtfa can't read Stdin")
 		os.Exit(1)
 	}
-	if fileInfo.Mode()&os.ModeCharDevice == 0 || fileInfo.Size() <= 0 {
+	if fileInfo.Mode()&os.ModeCharDevice == 0 {
 		scanner := bufio.NewScanner(bufio.NewReader(os.Stdin))
 		for scanner.Scan() {
 			aliases = append(aliases, scanner.Text())

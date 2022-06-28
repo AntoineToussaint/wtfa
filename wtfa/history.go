@@ -20,7 +20,6 @@ type Stats = map[string]int
 
 func getHistoryFile() (SHELL, string) {
 	shellPath := os.Getenv("SHELL")
-	fmt.Println(shellPath)
 	var shell SHELL
 	if strings.Contains(shellPath, "zsh") {
 		shell = ZSH
